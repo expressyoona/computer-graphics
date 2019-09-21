@@ -12,17 +12,17 @@ void initGL();
 
 void drawLine();
 
-void bresenhamAlgorithm(int x1, int y1, int x2, int y2);
-void bresLine1(int x1, int y1, int x2, int y2); // 0 < m < 1
-void bresLine2(int x1, int y1, int x2, int y2); // m > 1
-void bresLine3(int x1, int y1, int x2, int y2); // -1 < m < 0
-void bresLine4(int x1, int y1, int x2, int y2); // m < -1
-
 void midPointAlgorithm(int x1, int y1, int x2, int y2);
 void midLine1(int x1, int y1, int x2, int y2); // 0 < m < 1
 void midLine2(int x1, int y1, int x2, int y2); // m > 1
 void midLine3(int x1, int y1, int x2, int y2); // -1 < m < 0
 void midLine4(int x1, int y1, int x2, int y2); // m < -1
+
+void bresenhamAlgorithm(int x1, int y1, int x2, int y2);
+void bresLine1(int x1, int y1, int x2, int y2); // 0 < m < 1
+void bresLine2(int x1, int y1, int x2, int y2); // m > 1
+void bresLine3(int x1, int y1, int x2, int y2); // -1 < m < 0
+void bresLine4(int x1, int y1, int x2, int y2); // m < -1
 
 void drawCircle();
 void midPointCircle(int a, int b, int radius);
@@ -71,6 +71,10 @@ void drawEllipse() {
 		bresenhamEllipse(a, b, r1, r2);
 	glEnd();
 	glFlush();
+}
+
+void midPointEllipse(int a, int b, int r1, int r2) {
+	
 }
 
 void bresenhamEllipse(int a, int b, int r1, int r2) {
@@ -246,8 +250,8 @@ void drawLine() {
 	};
 	glClear(GL_COLOR_BUFFER_BIT);
 	for(int i = 0;i < sizeof(points) / sizeof(points[0]);i += 4) {
-		// bresenhamAlgorithm(points[i], points[i+1], points[i+2], points[i+3]);
-		midPointAlgorithm(points[i], points[i+1], points[i+2], points[i+3]);
+		bresenhamAlgorithm(points[i], points[i+1], points[i+2], points[i+3]);
+		// midPointAlgorithm(points[i], points[i+1], points[i+2], points[i+3]);
 	}
 	glFlush();
 }
