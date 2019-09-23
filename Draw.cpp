@@ -2,6 +2,8 @@
 #include <GL/glut.h>
 #include <math.h>
 
+#include "subFile.cpp"
+
 #define MAX_WIDTH 1000
 #define MAX_HEIGHT 1000
 #define MIDDLE_X MAX_WIDTH / 2
@@ -34,12 +36,12 @@ void bresenhamEllipse(int a, int b, int r1, int r2);
 
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
-	glutCreateWindow("Draw Line, Circle & Ellipse Program");
+	glutCreateWindow("Drawing Line, Circle & Ellipse Program");
 	glutInitWindowSize(MAX_WIDTH, MAX_HEIGHT);
 	glutInitWindowPosition(0, 0);
-	glutDisplayFunc(drawLine);
+	//glutDisplayFunc(drawLine);
 	// glutDisplayFunc(drawCircle);
-	// glutDisplayFunc(drawEllipse);
+	glutDisplayFunc(drawEllipse);
 	initGL();
 	// std::cout<<"OpenGL version: "<<glGetString(GL_VERSION);
 	glutMainLoop();
@@ -51,9 +53,9 @@ int main(int argc, char** argv) {
 void initGL() {
 	glClearColor( 1.0, 1.0, 1.0, 0.0 );	//get white background color
   	glColor3f( 0.0f, 0.0f, 0.0f );	//set drawing color
-	glPointSize( 3.0 );			//a dot is 4x4
+	glPointSize( 2.0 );	//a dot is 4x4
 	glMatrixMode( GL_PROJECTION );
-	glLoadIdentity();			//replace current matrix with identity matrix
+	glLoadIdentity();	//replace current matrix with identity matrix
 	gluOrtho2D( 0.0, MAX_WIDTH, 0.0, MAX_HEIGHT);
 }
 
@@ -66,14 +68,57 @@ void drawEllipse() {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(0.0, 0.0, 1.0);
 	glBegin(GL_POINTS);
-		// midPointAlgorithm(-500, 0, 500, 0);
-		// midPointAlgorithm(0, 500, 0, -500);
-		bresenhamEllipse(a, b, r1, r2);
+		// bresenhamEllipse(a, b, r1, r2);
+		midPointEllipse(a, b, r1, r2);
 	glEnd();
 	glFlush();
 }
 
 void midPointEllipse(int a, int b, int r1, int r2) {
+	/*
+	*
+	*/
+	float init = r2*r2 - r1*r1*r2 + r1*r1/4.0;
+	float p = init;
+	
+	float xQ = (float) r1 * r1 / sqrt(r1 * r1 + r2 * r2);
+	float yQ = (float) r2 * r2 / sqrt(r1 * r1 + r2 * r2);
+	
+	int translationX = a + MIDDLE_X;
+	int translationY = b + MIDDLE_Y;
+	
+	glVertex2i(translationX, translationY);
+	
+	// Region 1
+	int x = 0, y = r2;
+	for(;x <= xQ;x++) {
+		glVertex2i(translationX + x, translationY + y);
+		glVertex2i(translationX - x, translationY + y);
+		glVertex2i(translationX + x, translationY - y);
+		glVertex2i(translationX - x, translationY - y);
+		if (p >= 0) {
+			p = p + (2*x + 3)*(r2*r2)-2*(r1*r1)*(y-1);
+			y--;
+		} else {
+			p = p + (2*x + 3)*r2*r2;
+		}
+	}
+	
+	// Region 2
+	p = init;
+	x = r1, y = 0;
+	for(;y <= yQ;y++) {
+		glVertex2i(translationX + x, translationY + y);
+		glVertex2i(translationX - x, translationY + y);
+		glVertex2i(translationX + x, translationY - y);
+		glVertex2i(translationX - x, translationY - y);
+		if (p >= 0) {
+			p = p + (2*y + 3)*r1*r1 - 2*r2*r2*(x-1);
+			x--;
+		} else {
+			p = p + r1*r1*(2*y + 3);
+		}
+	}
 	
 }
 
@@ -149,7 +194,7 @@ void midPointCircle(int a, int b, int radius) {
 	int y = radius;
 	float x2 = radius * sqrt(2) / 2;
 	
-	int translationX = 0, translationY;
+	int translationX, translationY;
 	if (a * b >= 0) {
 		// Both of a and b are the same sign
 		translationX = a + MIDDLE_X;
@@ -189,19 +234,16 @@ void midPointCircle(int a, int b, int radius) {
 }
 
 void bresenhamCircle(int a, int b, int radius) {
-	
 	int x = 0;
 	int y = radius;
-	
 	
 	// d = f(P) + f(S)
 	// f(P) = f(x + 1, y)
 	// f(S) = f(x + 1, y - 1)
 	int d = 3 - 2 * radius;
-	
 	float x2 = radius * sqrt(2) / 2;
 	
-	int translationX = 0, translationY;
+	int translationX, translationY;
 	if (a * b >= 0) {
 		// Both of a and b are the same sign
 		translationX = a + MIDDLE_X;
@@ -237,10 +279,8 @@ void bresenhamCircle(int a, int b, int radius) {
 
 void drawLine() {
 	/*
-	AB:
-	A(x1, y1)
-	B(x2, y2)
-	x1, y1, x2, y2 are integer
+	* AB: A(x1, y1) and B(x2, y2)
+	* x1, y1, x2, y2 are integer
 	 */
 	int points[] = {
 		0, 0, 100, 1000,
@@ -249,17 +289,36 @@ void drawLine() {
 		0, 100, 400, 0
 	};
 	glClear(GL_COLOR_BUFFER_BIT);
+	// midPointAlgorithm(-500, 0, 500, 0);
+	// 0 500 0 -500
+	
 	for(int i = 0;i < sizeof(points) / sizeof(points[0]);i += 4) {
-		bresenhamAlgorithm(points[i], points[i+1], points[i+2], points[i+3]);
-		// midPointAlgorithm(points[i], points[i+1], points[i+2], points[i+3]);
+		if (points[i] <= points[i+2]) {
+			bresenhamAlgorithm(points[i], points[i+1], points[i+2], points[i+3]);
+			// midPointAlgorithm(points[i], points[i+1], points[i+2], points[i+3]);	
+		} else {
+			// Swap two points
+			bresenhamAlgorithm(points[i+2], points[i+3], points[i], points[i+1]);
+			//midPointAlgorithm(points[i+2], points[i+3], points[i], points[i+1]);
+		}
 	}
+	
+	glColor3f(0.0, 0.0, 0.0);
+	glPointSize(2.0);
+	glBegin(GL_POINTS);
+	for(int y = -MIDDLE_Y;y <= MIDDLE_Y;y++) {
+		glVertex2i(MIDDLE_X, MIDDLE_Y + y);
+		glVertex2i(MIDDLE_Y + y, MIDDLE_X);
+	}
+	glEnd();
+	
 	glFlush();
 }
 
 void bresenhamAlgorithm(int x1, int y1, int x2, int y2) {
-	std::cout<<"\nBresenham"<<std::endl;
+	std::cout<<"\nBresenham\n";
 	float m = (float)(y2 - y1)	/ (x2 - x1); //m la he so goc
-	std::cout<<"\nHe so goc = "<<m;
+	std::cout<<"\nSlope = "<<m;
 	if ((m >= 0) && (m <= 1)) {
 		std::cout<<" => [0,1]";
 		bresLine1(x1, y1, x2, y2);
@@ -379,7 +438,7 @@ void bresLine4(int x1, int y1, int x2, int y2) {
 void midPointAlgorithm(int x1, int y1, int x2, int y2) {
 	std::cout<<"\nMid Point";
 	float m = (float) (y2 - y1) / (x2 - x1);
-	std::cout<<"He so goc = "<<m<<std::endl;
+	std::cout<<"Slope = "<<m<<std::endl;
 	if ((m >= 0) && (m <= 1)) {
 		std::cout<<" => [0,1]";
 		midLine1(x1, y1, x2, y2);
