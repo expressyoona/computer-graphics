@@ -26,11 +26,6 @@ struct Point3D {
 	int z;
 };
 
-struct Vector2D {
-	int x;
-	int y;
-};
-
 struct FaceType {
 	int numPoint;
 	int indexPoint[MAX];
@@ -154,14 +149,6 @@ void init() {
 		glVertex2i(MAX_WIDTH, MIDDLE_X);
 		glVertex2i(MIDDLE_Y, MAX_HEIGHT);
 		glVertex2i(MIDDLE_Y, -MAX_HEIGHT);
-	glEnd();
-	glFlush();
-}
-
-void putAPixel2D(Point2D X, float* color) {
-	glColor3f(color[0], color[1], color[2]);
-	glBegin(GL_POINTS);
-		glVertex2i(MIDDLE_X + X.x, MIDDLE_Y + X.y);
 	glEnd();
 	glFlush();
 }
