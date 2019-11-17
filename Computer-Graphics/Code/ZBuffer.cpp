@@ -71,7 +71,7 @@ using namespace std;
 int main(int argc, char **argv) {
 	glutInit(&argc, argv);
 	glutInitWindowSize(MAX_WIDTH, MAX_HEIGHT);
-	glutCreateWindow("Depth Sorting Method");
+	glutCreateWindow("Depth Buffer Method");
 	glutInitWindowPosition(0, 0);
 	glutDisplayFunc(draw);
 	init();
@@ -109,11 +109,11 @@ void draw() {
 		4, 1, {A, B, C, D}, {{0, 1}, {1, 2}, {2, 3}, {3, 0}}, {0.0, 0.0, 1.0}
 	};
 
+	// Black
 	A = {0, 50, 10};
 	B = {0, 55, 10};
 	C = {150, 55, 70};
 	D = {150, 50, 70};
-	// Black
 	FaceModel fourthPolygon = {
 		4, 1, {A, B, C, D}, {{0, 1}, {1, 2}, {2, 3}, {3, 0}}, {0.0, 0.0, 0.0}
 	};
@@ -124,30 +124,34 @@ void draw() {
 }
 
 // Surface equation: Ax + By + Cz + D = 0 hay A(x - x0) + B(y - y0) + C(z - z0) = 0
+/*
+ *	STEPS BY STEPS
+ *	Duyệt từng đa giác(mặt phẳng)
+ *	Duyệt từng điểm (x, y) trên hình chiếu của đa giác(thực chất là chỉ xét tung độ, hoành độ tại 1 điểm vì coi như ta chiếu lên Oxy nên z = 0)
+ *	Tìm độ sâu Z của (x, y). Để cần được điều này, cần phải có vecto pháp tuyến để viết phương trình đường thẳng.
+ * 	So sánh Z với độ sâu z của (x, y) trước đó.
+ *	Nếu Z nhỏ hơn z(x, y) thì cập nhật độ sâu z và màu tại (x, y)
+ *	Duyệt toàn bộ khung hình chữ nhật chứa các đa giác và tô màu
+ */
 void depthBufferMethod(FaceModel polygons[], int n) {
 	// Data init
-	Color background = {1.0, 1.0, 1.0};
+	Color background = {1.0, 1.0, 1.0}, currentColor;
+	FaceModel currentFaceModel;
+	Point3D currentPoint;
+	int X_MIN, Y_MIN, X_MAX, Y_MAX;
+	int D;
+	float Z;
+
 	for(int i = 0;i < MAX_BUFFER_LENGTH;i++) {
 		for(int j = 0;j < MAX_BUFFER_LENGTH;j++) {
 			depthData.z[i][j] = INT_MAX;
 			frameData.color[i][j] = background;
 		}
 	}
-	FaceModel currentFaceModel;
-	Point3D currentPoint;
-	int X_MIN, Y_MIN, X_MAX, Y_MAX;
-	int D;
-	float Z;
-	/*
-	 *	STEPS BY STEPS
-	 *	Duyệt từng đa giác
-	 *	Duyệt từng điểm (x, y) trên hình chiếu đa giác
-	 *	Tìm độ sâu Z của (x, y). Để cần được điều này, cần phải có vecto pháp tuyến để viết phương trình đường thẳng.
-	 * 	So sánh Z với độ sâu của (x, y) trước đó
-	 */
+	
 	f(k, 0, n) {
 		currentFaceModel = polygons[k];
-		int X_MIN = INT_MAX, Y_MIN = INT_MAX, X_MAX = INT_MIN, Y_MAX = INT_MIN;
+		X_MIN = INT_MAX, Y_MIN = INT_MAX, X_MAX = INT_MIN, Y_MAX = INT_MIN;
 
 		f(i, 0, currentFaceModel.numVertex) {
 			currentPoint = currentFaceModel.vertex[i];
@@ -171,23 +175,21 @@ void depthBufferMethod(FaceModel polygons[], int n) {
 		
 		Vector3D AB = {B.x - A.x, B.y - A.y, B.z - A.z};
 		Vector3D BC = {C.x - B.x, C.y - B.y, C.z - B.z};
+		// Calculate normal vector of the surface/plane
 		Vector3D n = vectorCrossProduct(AB, BC);
-		// cout<<n.x<<" "<<n.y<<" "<<n.z<<endl;
-		// cout<<X_MIN<<" -> "<<X_MAX<<" - "<<Y_MIN<<" -> "<<Y_MAX<<endl;
+
+		// Calculate D in the equation. Assume that the plane passes the A point.
 		D = -n.x*A.x - n.y*A.y - n.z*A.z;
 		
 		// Scan line
 		f(i, X_MIN, X_MAX + 1) {
 			f(j, Y_MIN, Y_MAX + 1) {
 				Z = -1.0*(n.x*i + n.y*j + D)/n.z;
-				// cout<<Z<<" -> ";
 				if (Z < depthData.z[i][j]) {
-					// std::cout<<"Deep"<<std::endl;
 					depthData.z[i][j] = Z;
 					float *c = currentFaceModel.color;
 					frameData.color[i][j] = {c[0], c[1], c[2]};
 				}
-				// cout<<endl;
 			}
 		}
 		
@@ -196,8 +198,8 @@ void depthBufferMethod(FaceModel polygons[], int n) {
 	f(i, 0, MAX_BUFFER_LENGTH) {
 		f(j, 0, MAX_BUFFER_LENGTH) {
 			glBegin(GL_POINTS);
-			glColor3f(frameData.color[i][j].red, frameData.color[i][j].green, frameData.color[i][j].blue);
-			// std::cout<<frameData.color[i][j].red<<" "<<frameData.color[i][j].green<<" "<<frameData.color[i][j].blue<<std::endl;
+			currentColor = frameData.color[i][j];
+			glColor3f(currentColor.red, currentColor.green, currentColor.blue);
 			glVertex2i(MIDDLE_X + i, MIDDLE_Y + j);
 			glEnd();
 		}
@@ -217,20 +219,9 @@ Vector3D vectorCrossProduct(Vector3D A, Vector3D B) {
 
 void init() {
 	glClearColor(1.0, 1.0, 1.0, 0.0);
-	// glColor3f(0.0f, 0.0f, 0.0f);
-	// glPointSize(5.0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluOrtho2D(0.0, MAX_WIDTH, 0.0, MAX_HEIGHT);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(0.0, 0.0, 0.0);
-	/*
-	glBegin(GL_LINES);
-		glVertex2i(-MAX_WIDTH, MIDDLE_X);
-		glVertex2i(MAX_WIDTH, MIDDLE_X);
-		glVertex2i(MIDDLE_Y, MAX_HEIGHT);
-		glVertex2i(MIDDLE_Y, -MAX_HEIGHT);
-	glEnd();
-	glFlush();
-	*/
 }
