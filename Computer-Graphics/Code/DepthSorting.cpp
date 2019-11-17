@@ -42,8 +42,8 @@ void init();
 
 void draw();
 void putAPixel2D(Point2D X, float* color);
+
 void depthSortingMethod(FaceModel polygons[], int n);
-float toRadian(int degree);
 
 using namespace std;
 int main(int argc, char **argv) {
