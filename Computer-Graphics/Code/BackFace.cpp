@@ -272,7 +272,6 @@ GLuint drawFromPolygonMesh(FaceModel faceModel, Vector3D eyesVector) {
 		Point3D C = faceModel.vertex[faceModel.face[i].indexFace[2]];
 
 		Vector3D AB = {B.x - A.x, B.y - A.y, B.z - A.z};
-		// Vector3D AC = {C.x - A.x, C.y - A.y, C.z - A.z};
 		Vector3D BC = {C.x - B.x, C.y - B.y, C.z - B.z};
 		
 		// Calculate normal vector of the plane
@@ -280,9 +279,9 @@ GLuint drawFromPolygonMesh(FaceModel faceModel, Vector3D eyesVector) {
 		
 		
 		int sign = vectorDotProduct(n, eyesVector);
-		std::cout<<"Current plane: "<<i+1<<" ->"<<sign;
+		// std::cout<<"Current plane: "<<i+1<<" ->"<<sign;
 		if (sign >= 0) {
-			std::cout<<"(Invisible plane)";
+			// std::cout<<"(Invisible plane)";
 			glBegin(GL_LINE_LOOP);
 			int nV = faceModel.face[i].nFace;
 			for(int j = 0;j < nV;j++) {
