@@ -82,38 +82,38 @@ int main(int argc, char **argv) {
 void draw() {
 	// Write your code below
 	// Red
-	Point3D A = {100, 250, 50};
-	Point3D B = {90, 250, 50};
-	Point3D C = {90, 10, 20};
-	Point3D D = {100, 10, 20};
+	Point3D A = {20, 60, 10};
+	Point3D B = {30, 60, 10};
+	Point3D C = {30, 0, 200};
+	Point3D D = {20, 0, 200};
 
 	FaceModel firstPolygon = {
 		4, 1, {A, B, C, D}, {{0, 1}, {1, 2}, {2, 3}, {3, 0}}, {1.0, 0.0, 0.0}
 	};
 
 	// Green
-	A = {40, 200, 10};
-	B = {40, 10, 40};
-	C = {50, 10, 40};
-	D = {50, 200, 10};
+	A = {50, 60, 100};
+	B = {60, 60, 100};
+	C = {60, 0, 10};
+	D = {50, 0, 10};
 	FaceModel secondPolygon = {
 		4, 1, {A, B, C, D}, {{0, 1}, {1, 2}, {2, 3}, {3, 0}}, {0.0, 1.0, 0.0}
 	};
 
 	// Blue
-	A = {0, 120, 40};
-	B = {0, 130, 40};
-	C = {150, 130, 0};
-	D = {150, 120, 0};
+	A = {10, 40, 100};
+	B = {10, 50, 100};
+	C = {70, 40, 50};
+	D = {70, 50, 50};
 	FaceModel thirdPolygon = {
 		4, 1, {A, B, C, D}, {{0, 1}, {1, 2}, {2, 3}, {3, 0}}, {0.0, 0.0, 1.0}
 	};
 
 	// Black
-	A = {0, 50, 10};
-	B = {0, 55, 10};
-	C = {150, 55, 70};
-	D = {150, 50, 70};
+	A = {10, 20, 30};
+	B = {10, 10, 30};
+	C = {70, 10, 90};
+	D = {70, 20, 90};
 	FaceModel fourthPolygon = {
 		4, 1, {A, B, C, D}, {{0, 1}, {1, 2}, {2, 3}, {3, 0}}, {0.0, 0.0, 0.0}
 	};
@@ -140,7 +140,7 @@ void depthBufferMethod(FaceModel polygons[], int n) {
 	Point3D currentPoint;
 	int X_MIN, Y_MIN, X_MAX, Y_MAX;
 	int D;
-	float Z;
+	float Z, zi;
 
 	for(int i = 0;i < MAX_BUFFER_LENGTH;i++) {
 		for(int j = 0;j < MAX_BUFFER_LENGTH;j++) {
@@ -180,17 +180,22 @@ void depthBufferMethod(FaceModel polygons[], int n) {
 
 		// Calculate D in the equation. Assume that the plane passes the A point.
 		D = -n.x*A.x - n.y*A.y - n.z*A.z;
-		
+	
+		zi = -1.0*(n.x*X_MIN + n.y*Y_MIN + D)/n.z;
+
 		// Scan line
 		f(i, X_MIN, X_MAX + 1) {
 			f(j, Y_MIN, Y_MAX + 1) {
 				Z = -1.0*(n.x*i + n.y*j + D)/n.z;
-				if (Z < depthData.z[i][j]) {
-					depthData.z[i][j] = Z;
+				zi = Z;
+				// zi = zi - 1.0*n.y/n.z;
+				if (zi < depthData.z[i][j]) {
+					depthData.z[i][j] = zi;
 					float *c = currentFaceModel.color;
 					frameData.color[i][j] = {c[0], c[1], c[2]};
 				}
 			}
+			// zi = zi - 1.0*n.x/n.z;
 		}
 		
 	}
@@ -203,7 +208,6 @@ void depthBufferMethod(FaceModel polygons[], int n) {
 			glVertex2i(MIDDLE_X + i, MIDDLE_Y + j);
 			glEnd();
 		}
-		
 	}
 	glFlush();
 	
