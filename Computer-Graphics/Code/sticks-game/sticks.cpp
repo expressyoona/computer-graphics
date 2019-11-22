@@ -4,6 +4,20 @@
  */
 #include <GL/glut.h>
 #include <bits/stdc++.h>
+#include <cstdlib>
+#include <ctime>
+#include <chrono>
+#include <time.h>
+
+#define f(i, a, b) for(int i = a;i < b;i++)
+
+struct Rectangle {
+    int x;
+    int y;
+    int r;
+    int l;
+    int depth;
+};
 
 const int MAX_WIDTH = 1000;
 const int MAX_HEIGHT = 1000;
@@ -56,15 +70,69 @@ void onMouseClick(int button, int state, int x, int y) {
 }
 
 void initGl() {
+    srand(time(NULL));
+
     glClearColor(1.0, 1.0, 1.0, 0.0);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(0, MAX_WIDTH, 0, MAX_HEIGHT);
     glClear(GL_COLOR_BUFFER_BIT);
     glColor3f(0.0, 0.0, 0.0);
+
+    clock_t thisTime = clock();
+    clock_t lastTime = thisTime;
+    double timeCounter = 0;
+    int count = 1;
+    while(true) {
+        thisTime = clock();
+
+        timeCounter += (double)(thisTime - lastTime);
+        if (timeCounter > (double)(TIME_REFRESH*CLOCKS_PER_SEC)) {
+            timeCounter -= (double)(TIME_REFRESH*CLOCKS_PER_SEC);
+            std::cout<<count<<std::endl;
+            count++;
+        }
+    }
 }
 
 void paint() {
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    int x, y, r, l, transpose, z = 0;
+    float red, green, blue;
+    f(i, 0, N) {
+        glBegin(GL_QUADS);
+        x = std::rand() % (MAX_WIDTH/2);
+        y = std::rand() % (MAX_HEIGHT/2);
+        red = (std::rand() % 255)/255.0;
+        green = (std::rand() % 255)/255.0;
+        blue = (std::rand() % 255)/255.0;
 
+        glColor3f(red, green, blue);
+        transpose = rand() % 2;
+        // 0 is landscape, 1 is portrait
+        if (transpose == 0) {
+            r = 20;
+            l = 400 + (std::rand() % (MAX_HEIGHT/2 - y));
+        } else {
+            l = 20;
+            r = 400 + (std::rand() % (MAX_WIDTH/2 - x));
+        }
+        glVertex2i(x, y);
+        glVertex2i(x, y+l);
+        glVertex2i(x+r, y+l);
+        glVertex2i(x+r, y);
+        glEnd();
+
+        // Draw border
+        glColor3f(0.0, 0.0, 0.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex2i(x, y);
+        glVertex2i(x, y+l);
+        glVertex2i(x+r, y+l);
+        glVertex2i(x+r, y);
+        glEnd();
+    }    
+    glFlush();
 }
 
