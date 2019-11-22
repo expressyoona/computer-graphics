@@ -1,6 +1,6 @@
-
 /*
-	-lGL -lGLU -lglut
+ *	Windows: -lglut32 -lglu32 -lopengl32 -lwinmm -lgdi32
+ *	Linux: -lGL -lGLU -lglut
 */
 #include <iostream>
 #include <GL/glut.h>
@@ -48,9 +48,9 @@ struct Vector3D {
 	int z;
 };
 
-void Init();
+void init();
 
-void DrawCoordinate();
+void drawCoordinate();
 void RendenScene();
 void ReShape(int width, int height);
 
@@ -64,11 +64,10 @@ Vector3D vectorCrossProduct(Vector3D A, Vector3D B);
 int vectorDotProduct(Vector3D A, Vector3D B);
 float vectorLength(Vector3D A);
 
-void DrawCoordinate();
+void drawCoordinate();
 void ReShape(int width, int height);
  
-void Init()
-{
+void init() {
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glEnable(GL_DEPTH_TEST);
  	
@@ -92,9 +91,7 @@ void Init()
  
 }
  
-void RendenScene()
-{
- 
+void RendenScene() {
   	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   	glLoadIdentity();
   	// 10 10 15
@@ -114,29 +111,6 @@ void RendenScene()
 	Point3D F = {0, a, a};	// 5
 	Point3D G = {a, a, a};	// 6
 	Point3D H = {a, 0, a};	// 7
-	/*
-	EdgeType AB = {0, 1};
-	EdgeType AE = {0, 4};
-	EdgeType AD = {0, 3};
-
-	EdgeType BC = {1, 2};
-	EdgeType BF = {1, 5};
-
-	EdgeType CD = {2, 3};
-	EdgeType CG = {2, 6};
-
-	EdgeType DH = {3, 7};
-
-	EdgeType EF = {4, 5};
-	EdgeType EH = {4, 7};
-
-	EdgeType FG = {5, 6};
-
-	EdgeType GH = {6, 7};
-
-	EdgeType edge[100] = {AB, AE, AD, BC, BF, CD, CG, DH, EF, EH, FG, GH};
-	int edgeNum = sizeof(edge)/sizeof(edge[0]);
-	*/
 
 	Point3D vertex[] = {A, B, C, D, E, F, G, H};
 	int vertexNum = sizeof(vertex)/sizeof(vertex[0]);
@@ -150,17 +124,16 @@ void RendenScene()
 	FaceType f6 = {4, {0, 1, 2, 3}};
 	int faceNum = 6;	
 
-	// WireFrame cube = {vertexNum, edgeNum, {A, B, C, D, E, F, G, H}, {AB, AE, AD, BC, BF, CD, CG, DH, EF, EH, FG, GH}};
-	FaceModel c = {
+	FaceModel cube = {
 		vertexNum, faceNum, {A, B, C, D, E, F, G, H}, {f1, f2, f3, f4, f5, f6}
 	};
 
 	glPushMatrix();
-	DrawCoordinate();
+	drawCoordinate();
 	SetMaterialColor(K_MAT_GREEN);
 	
 	// glCallList(drawFromWireFrame(cube));
-	glCallList(drawFromPolygonMesh(c, eyesVector));
+	glCallList(drawFromPolygonMesh(cube, eyesVector));
 	
 	glEnd();
 	
@@ -175,9 +148,9 @@ int main(int argc, char* argv[])
   	glutInitDisplayMode(GLUT_SINGLE |GLUT_RGB);
   	glutInitWindowSize(500, 500);
   	glutInitWindowPosition(100, 100);
-  	glutCreateWindow("Computer Graphics 3D");
+  	glutCreateWindow("Backface method");
  
-  	Init();
+  	init();
   	glutReshapeFunc(ReShape);
   	glutDisplayFunc(RendenScene);
  
@@ -290,7 +263,6 @@ GLuint drawFromPolygonMesh(FaceModel faceModel, Vector3D eyesVector) {
 			}
 			glEnd();
 		}
-		std::cout<<std::endl;
 	}
 	glEndList();
 	return dp_list;
@@ -312,7 +284,7 @@ float vectorLength(Vector3D A) {
 	return sqrt(A.x*A.x + A.y*A.y + A.z*A.z);
 }
 
-void DrawCoordinate() {
+void drawCoordinate() {
   	glDisable(GL_LIGHTING);
   	glBegin(GL_LINES);
   	glColor3f(1.0, 0.0, 0.0);
