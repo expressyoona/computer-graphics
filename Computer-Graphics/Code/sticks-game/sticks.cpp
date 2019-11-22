@@ -49,8 +49,10 @@ int main(int argc, char **argv)
 
 void onMouseClick(int button, int state, int x, int y) {
     // In ra tọa độ được click, (0, 0) là góc trên bên trái
-    // Sẽ in ra 2 lần vì chưa phân biệt click and release
-    std::cout<<x<<", "<<y<<std::endl;
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+        std::cout<<x<<", "<<y<<std::endl;
+    }
+    
 }
 
 void initGl() {
