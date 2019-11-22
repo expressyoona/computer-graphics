@@ -78,21 +78,6 @@ void initGl() {
     gluOrtho2D(0, MAX_WIDTH, 0, MAX_HEIGHT);
     glClear(GL_COLOR_BUFFER_BIT);
     glColor3f(0.0, 0.0, 0.0);
-
-    clock_t thisTime = clock();
-    clock_t lastTime = thisTime;
-    double timeCounter = 0;
-    int count = 1;
-    while(true) {
-        thisTime = clock();
-
-        timeCounter += (double)(thisTime - lastTime);
-        if (timeCounter > (double)(TIME_REFRESH*CLOCKS_PER_SEC)) {
-            timeCounter -= (double)(TIME_REFRESH*CLOCKS_PER_SEC);
-            std::cout<<count<<std::endl;
-            count++;
-        }
-    }
 }
 
 void paint() {
