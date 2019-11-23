@@ -75,9 +75,9 @@ int main(int argc, char **argv)
 
 void onMouseClick(int button, int state, int x, int y) {
     // In ra tọa độ được click, (0, 0) là góc trên bên trái
+    // Gốc tọa độ khi thao tác chuột != gốc tọa độ khi vẽ --> Cần trừ 1 khoảng tương ứng
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-        // std::cout<<x<<", "<<y<<std::endl;
-        std::cout<<clickedRectangle({x, MAX_WIDTH - y})<<std::endl;
+        std::cout<<clickedRectangle({x - 1, MAX_WIDTH - y - 1})<<std::endl;
     }
     
 }
@@ -120,20 +120,28 @@ void paint() {
         arr[i] = {{x, y}, r, l, 0, {red, green, blue}};
         std::cout<<i<<" -> ";
         printRectangle(arr[i]);
-        glVertex2i(x, y);
-        glVertex2i(x, y+l);
-        glVertex2i(x+r, y+l);
-        glVertex2i(x+r, y);
+            glVertex2i(x, y);
+            glVertex2i(x, y+l);
+            glVertex2i(x+r, y+l);
+            glVertex2i(x+r, y);
         glEnd();
 
         // Draw border
         glColor3f(0.0, 0.0, 0.0);
         glBegin(GL_LINE_LOOP);
-        glVertex2i(x, y);
-        glVertex2i(x, y+l);
-        glVertex2i(x+r, y+l);
-        glVertex2i(x+r, y);
+            glVertex2i(x, y);
+            glVertex2i(x, y+l);
+            glVertex2i(x+r, y+l);
+            glVertex2i(x+r, y);
         glEnd();
+
+        // Highlight lowest vertex
+        glColor3f(1.0, 0.0, 0.0);
+        glPointSize(5.0);
+        glBegin(GL_POINTS);
+            glVertex2i(x, y);
+        glEnd();
+        
     }    
     glFlush();
 }
