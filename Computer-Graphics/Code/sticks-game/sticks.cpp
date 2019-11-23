@@ -4,6 +4,9 @@
  */
 #include <GL/glut.h>
 #include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
 #define f(i, a, b) for(int i = a;i < b;i++)
 
 struct Point2D {
@@ -19,12 +22,16 @@ struct Rectangle {
     float color[3];
 };
 
+bool sortDepth (Rectangle i,Rectangle j) {
+	return (i.depth > j.depth);
+}
+
 const int MAX_WIDTH = 1000;
 const int MAX_HEIGHT = 1000;
 
 
 const int N = 10; // Số thanh đầu game
-const int TIME_REFRESH = 5; // Thời gian tối thiểu(s) để thêm thanh mới
+const int TIME_REFRESH = 1; // Thời gian tối thiểu(s) để thêm thanh mới
 const int MAX_STICKS = 20; // Số lượng thanh tối đa
 const int MAX_DEPTH = 10; // Độ sâu tối đa của 1 thanh
 const int MIN_LENGTH = 400; // Chiều dài/rộng tối thiểu của 1 thanh nằm ngang/dọc
@@ -33,6 +40,7 @@ const int MIN_WIDTH = 20; // Chiều rộng/dài tối thiểu của 1 thanh n�
 // int currentStick = N; // Nếu dùng vector, thì dùng listSticks.size() thay cho currentStick
 Rectangle arr[MAX_STICKS];
 bool started = false;
+bool click = false;
 
 std::vector<Rectangle> listSticks;
 /*
@@ -82,9 +90,10 @@ void onMouseClick(int button, int state, int x, int y) {
     // Gốc tọa độ khi thao tác chuột != gốc tọa độ khi vẽ --> Cần trừ 1 khoảng tương ứng
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         // std::cout<<x<<", "<<y<<std::endl;
+        click = true;
         std::cout<<clickedRectangle({x, MAX_WIDTH - y})<<std::endl;
         // Cần xóa thanh ra khỏi vector trước khi vẽ lại
-        // glutPostRedisplay();
+        glutPostRedisplay();
     }
     
 }
@@ -115,11 +124,22 @@ void paint() {
         f(i, 0, N) {
             listSticks.push_back(generateStick());
         }
+        sort(listSticks.begin(), listSticks.end(), sortDepth);
         started = true;
     } else {
-        listSticks.push_back(generateStick());
+        if(!click) {
+			listSticks.push_back(generateStick());
+        	sort(listSticks.begin(), listSticks.end(), sortDepth);
+		}
+		else {
+			click = false;
+		}
     }
-
+    if (listSticks.size() == MAX_STICKS) {
+		std::cout<<"You lose!"<<std::endl;
+		exit(0);
+	}
+    std::cout<<"------------------------------------"<<std::endl;
     f(i, 0, listSticks.size()) {
         std::cout<<"["<<i<<"/"<<listSticks.size()<<"]: ";
         printRectangle(listSticks[i]);
@@ -155,7 +175,7 @@ void paint() {
 bool clickedRectangle(Point2D A) {
     int minX, maxX, minY, maxY;
     std::cout<<"("<<A.x<<", "<<A.y<<") ";
-    f(i, 0, listSticks.size()) {
+    for(int i=listSticks.size()-1;i>=0;i--) {
         minX = listSticks[i].vertex.x;
         minY = listSticks[i].vertex.y;
         maxX = minX + listSticks[i].r;
@@ -163,10 +183,26 @@ bool clickedRectangle(Point2D A) {
         
         if (minX <= A.x && A.x <= maxX && minY <= A.y && A.y <= maxY) {
             std::cout<<i<<std::endl;
+            Point2D r1, l1, r2, l2;
+            bool check = false;
+            r1 = {listSticks[i].vertex.x + listSticks[i].r, listSticks[i].vertex.y};
+            l1 = {listSticks[i].vertex.x, listSticks[i].vertex.y + listSticks[i].l};
+            for(int j=listSticks.size()-1;j>i;j--) {
+            	r2 = {listSticks[j].vertex.x + listSticks[j].r, listSticks[j].vertex.y};
+            	l2 = {listSticks[j].vertex.x, listSticks[j].vertex.y + listSticks[j].l};
+            	if (l1.x > r2.x || l2.x > r1.x) {
+            		continue;
+            	}
+            	if (l1.y < r2.y || l2.y < r1.y) {
+            		continue;
+            	}
+            	return false;
+        	}
             listSticks.erase(listSticks.begin()+i);
             if (listSticks.empty()) {
                 // Game over
                 std::cout<<"You win!"<<std::endl;
+                exit(0);
             } else {
                 f(i, 0, listSticks.size()) {
                     std::cout<<i<<" -> ";
