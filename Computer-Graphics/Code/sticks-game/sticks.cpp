@@ -34,6 +34,8 @@ const int MAX_DEPTH = 10; // Độ sâu tối đa của 1 thanh
 
 int currentStick = N;
 Rectangle arr[MAX_STICKS];
+
+std::vector<Rectangle> listSticks;
 /*
  * Rules - Luật chơi
  * Khởi đầu sẽ có N thanh hình chữ nhật nằm đè lên nhau
@@ -55,6 +57,7 @@ Rectangle arr[MAX_STICKS];
 void initGl();
 void paint();
 void onMouseClick(int button, int state, int x, int y);
+void timer(int value);
 bool clickedRectangle(Point2D A);
 Rectangle generateStick();
 void printRectangle(Rectangle r) {
@@ -69,6 +72,7 @@ int main(int argc, char **argv)
     glutDisplayFunc(paint);
     glutMouseFunc(onMouseClick);
     initGl();
+    glutTimerFunc(TIME_REFRESH*1000, timer, 0);
     glutMainLoop();
     return 0;
 }
@@ -77,9 +81,18 @@ void onMouseClick(int button, int state, int x, int y) {
     // In ra tọa độ được click, (0, 0) là góc trên bên trái
     // Gốc tọa độ khi thao tác chuột != gốc tọa độ khi vẽ --> Cần trừ 1 khoảng tương ứng
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-        std::cout<<clickedRectangle({x - 1, MAX_WIDTH - y - 1})<<std::endl;
+        // std::cout<<x<<", "<<y<<std::endl;
+        std::cout<<clickedRectangle({x, MAX_WIDTH - y})<<std::endl;
+        glutPostRedisplay();
     }
     
+}
+
+void timer(int value) {
+	listSticks.push_back(generateStick());
+	currentStick++;
+	glutPostRedisplay();
+	glutTimerFunc(TIME_REFRESH*1000, timer, 0);
 }
 
 void initGl() {
@@ -95,52 +108,37 @@ void initGl() {
 
 void paint() {
     glClear(GL_COLOR_BUFFER_BIT);
-    
-    int x, y, r, l, transpose, z = 0;
-    float red, green, blue;
     f(i, 0, N) {
+    	listSticks.push_back(generateStick());
+    }
+    f(i, 0, currentStick) {
+    	std::cout<<i<<" -> ";
+        printRectangle(listSticks[i]);
         glBegin(GL_QUADS);
-        x = std::rand() % (MAX_WIDTH/2);
-        y = std::rand() % (MAX_HEIGHT/2);
-
-        red = (std::rand() % 255)/255.0;
-        green = (std::rand() % 255)/255.0;
-        blue = (std::rand() % 255)/255.0;
-
-        glColor3f(red, green, blue);
-        transpose = rand() % 2;
-        // 0 is landscape, 1 is portrait
-        if (transpose == 0) {
-            r = 20;
-            l = 400 + (std::rand() % (MAX_HEIGHT/2 - y));
-        } else {
-            l = 20;
-            r = 400 + (std::rand() % (MAX_WIDTH/2 - x));
-        }
-        arr[i] = {{x, y}, r, l, 0, {red, green, blue}};
-        std::cout<<i<<" -> ";
-        printRectangle(arr[i]);
-            glVertex2i(x, y);
-            glVertex2i(x, y+l);
-            glVertex2i(x+r, y+l);
-            glVertex2i(x+r, y);
+        glColor3f(listSticks[i].color[0], listSticks[i].color[1], listSticks[i].color[2]);
+        glVertex2i(listSticks[i].vertex.x, listSticks[i].vertex.y);
+        glVertex2i(listSticks[i].vertex.x, listSticks[i].vertex.y + listSticks[i].l);
+        glVertex2i(listSticks[i].vertex.x + listSticks[i].r, listSticks[i].vertex.y + listSticks[i].l);
+        glVertex2i(listSticks[i].vertex.x + listSticks[i].r, listSticks[i].vertex.y);
         glEnd();
 
         // Draw border
         glColor3f(0.0, 0.0, 0.0);
         glBegin(GL_LINE_LOOP);
-            glVertex2i(x, y);
-            glVertex2i(x, y+l);
-            glVertex2i(x+r, y+l);
-            glVertex2i(x+r, y);
+        glVertex2i(listSticks[i].vertex.x, listSticks[i].vertex.y);
+        glVertex2i(listSticks[i].vertex.x, listSticks[i].vertex.y + listSticks[i].l);
+        glVertex2i(listSticks[i].vertex.x + listSticks[i].r, listSticks[i].vertex.y + listSticks[i].l);
+        glVertex2i(listSticks[i].vertex.x + listSticks[i].r, listSticks[i].vertex.y);
         glEnd();
 
         // Highlight lowest vertex
+        /*
         glColor3f(1.0, 0.0, 0.0);
         glPointSize(5.0);
         glBegin(GL_POINTS);
             glVertex2i(x, y);
         glEnd();
+        */
         
     }    
     glFlush();
@@ -150,13 +148,19 @@ bool clickedRectangle(Point2D A) {
     int minX, maxX, minY, maxY;
     std::cout<<"("<<A.x<<", "<<A.y<<") ";
     f(i, 0, currentStick) {
-        minX = arr[i].vertex.x;
-        minY = arr[i].vertex.y;
-        maxX = minX + arr[i].r;
-        maxY = minY + arr[i].l;
+        minX = listSticks[i].vertex.x;
+        minY = listSticks[i].vertex.y;
+        maxX = minX + listSticks[i].r;
+        maxY = minY + listSticks[i].l;
         
         if (minX <= A.x && A.x <= maxX && minY <= A.y && A.y <= maxY) {
             std::cout<<i<<std::endl;
+            listSticks.erase(listSticks.begin()+i);
+            currentStick -= 1;
+            f(i, 0, currentStick) {
+            	std::cout<<i<<" -> ";
+            	printRectangle(listSticks[i]);
+            }
             return true;
         }
     }
@@ -165,5 +169,25 @@ bool clickedRectangle(Point2D A) {
 }
 
 Rectangle generateStick() {
-    // Generate a random rectanle
+    int x, y, r, l, transpose, z = 0;
+    float red, green, blue;
+    
+    x = std::rand() % (MAX_WIDTH/2);
+    y = std::rand() % (MAX_HEIGHT/2);
+
+    red = (std::rand() % 255)/255.0;
+    green = (std::rand() % 255)/255.0;
+    blue = (std::rand() % 255)/255.0;
+
+    transpose = rand() % 2;
+    // 0 is landscape, 1 is portrait
+    if (transpose == 0) {
+        r = 20;
+        l = 400 + (std::rand() % (MAX_HEIGHT/2 - y));
+    } else {
+        l = 20;
+        r = 400 + (std::rand() % (MAX_WIDTH/2 - x));
+    }
+    Rectangle rectangle = {{x, y}, r, l, 0, {red, green, blue}};
+    return rectangle;
 }
