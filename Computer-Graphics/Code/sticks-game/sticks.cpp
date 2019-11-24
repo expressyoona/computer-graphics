@@ -29,15 +29,13 @@ bool sortDepth (Rectangle i,Rectangle j) {
 const int MAX_WIDTH = 1000;
 const int MAX_HEIGHT = 1000;
 
+const int N = 10;
+const int TIME_REFRESH = 3;
+const int MAX_STICKS = 20;
+const int MAX_DEPTH = 200;
+const int MIN_LENGTH = 400;
+const int MIN_WIDTH = 20;
 
-const int N = 10; // Số thanh đầu game
-const int TIME_REFRESH = 3; // Thời gian tối thiểu(s) để thêm thanh mới
-const int MAX_STICKS = 20; // Số lượng thanh tối đa
-const int MAX_DEPTH = 200; // Độ sâu tối đa của 1 thanh
-const int MIN_LENGTH = 400; // Chiều dài/rộng tối thiểu của 1 thanh nằm ngang/dọc
-const int MIN_WIDTH = 20; // Chiều rộng/dài tối thiểu của 1 thanh nằm ngang/dọc
-
-Rectangle arr[MAX_STICKS];
 bool started = false;
 bool click = false;
 
@@ -49,7 +47,7 @@ void onMouseClick(int button, int state, int x, int y);
 void timer(int value);
 bool clickedRectangle(Point2D A);
 Rectangle generateStick();
-int random(int a, int b); // Random number x: a <= x <= b
+int random(int a, int b);
 void drawStick(Rectangle r);
 void printRectangle(Rectangle r) {
     std::cout<<r.vertex.x<<" -> "<<r.vertex.x+r.r<<", "<<r.vertex.y<<" -> "<<r.vertex.y+r.l<<std::endl;
@@ -75,7 +73,6 @@ void onMouseClick(int button, int state, int x, int y) {
         // std::cout<<x<<", "<<y<<std::endl;
         click = true;
         std::cout<<clickedRectangle({x, MAX_WIDTH - y})<<std::endl;
-        // Cần xóa thanh ra khỏi vector trước khi vẽ lại
         glutPostRedisplay();
     }
     
@@ -101,7 +98,6 @@ void initGl() {
 }
 
 void paint() {
-    // std::cout<<"Paint method"<<std::endl;
     glClear(GL_COLOR_BUFFER_BIT);
     if (!started) {
         f(i, 0, N) {
@@ -174,7 +170,7 @@ bool clickedRectangle(Point2D A) {
             return true;
         }
     }
-    std::cout<<std::endl;
+    // std::cout<<std::endl;
     return false;
 }
 
