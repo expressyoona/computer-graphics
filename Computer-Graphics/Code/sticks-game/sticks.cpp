@@ -31,9 +31,9 @@ const int MAX_HEIGHT = 1000;
 
 
 const int N = 10; // Số thanh đầu game
-const int TIME_REFRESH = 1; // Thời gian tối thiểu(s) để thêm thanh mới
+const int TIME_REFRESH = 3; // Thời gian tối thiểu(s) để thêm thanh mới
 const int MAX_STICKS = 20; // Số lượng thanh tối đa
-const int MAX_DEPTH = 10; // Độ sâu tối đa của 1 thanh
+const int MAX_DEPTH = 200; // Độ sâu tối đa của 1 thanh
 const int MIN_LENGTH = 400; // Chiều dài/rộng tối thiểu của 1 thanh nằm ngang/dọc
 const int MIN_WIDTH = 20; // Chiều rộng/dài tối thiểu của 1 thanh nằm ngang/dọc
 
@@ -42,23 +42,6 @@ bool started = false;
 bool click = false;
 
 std::vector<Rectangle> listSticks;
-/*
- * Rules - Luật chơi
- * Khởi đầu sẽ có N thanh hình chữ nhật nằm đè lên nhau
- * Mỗi thanh sẽ có độ sâu z, thanh có z nhỏ hơn sẽ nằm đè lên thanh có z lớn hơn
- * Nếu người chơi click vào 1 thanh không bị đè bởi bất kỳ thanh nào. Thanh đó sẽ biến mất
- * Nếu người chơi không làm biến mất được 1 thanh nào trong vào T(s), sẽ có 1 thanh được sinh ra ngẫu nhiên
- * Điều kiện game kết thúc: Không còn thanh nào trên màn hình hoặc số thanh đạt đến số lượng MAX_STICKS(MAX_STICKS > N)
- */
-
-/*
- * Quy ước cách sinh ngẫu nhiên 1 thanh:
- * Đầu tiên sinh ngẫu nhiên 1 cặp tọa độ (x, y) với x, y < 500. Đây là tọa độ góc dưới bên trái của thanh hình chữ nhật.
- * Sinh tiếp ngẫu nhiên chiều dài(l) và chiều rộng(r) của thanh. Đảm bảo rằng l+y và r+x < MAX_WIDTH/MAX_HEIGHT(không bị tràn)
- * Sinh lần lượt 3 số m, n, p ngẫu nhiên trong đoạn [0, 255]. Sau đó chia từng số cho 255. Dùng glColor3f với các số sau khi chia để có mã màu ngẫu nhiên. Có thể dùng thẳng glColor3i(chưa thử)
- * Sinh ngẫu nhiên độ sâu z trong đoạn [0, MAX_DEPTH]
- * Vẽ hình chữ nhật với các đỉnh (x, y), (x, y + l), (x+r, y), (x+r, y+l) và màu như trên. Đảm bảo rằng hình chữ nhật sẽ đè những thanh có độ sâu cao hơn hay bị đè bởi những thanh có độ sâu nhỏ hơn
- */
 
 void initGl();
 void paint();
@@ -160,7 +143,7 @@ bool clickedRectangle(Point2D A) {
         maxY = minY + listSticks[i].l;
         
         if (minX <= A.x && A.x <= maxX && minY <= A.y && A.y <= maxY) {
-            std::cout<<i<<std::endl;
+            // std::cout<<i<<std::endl;
             Point2D r1, l1, r2, l2;
             bool check = false;
             r1 = {listSticks[i].vertex.x + listSticks[i].r, listSticks[i].vertex.y};
@@ -196,11 +179,11 @@ bool clickedRectangle(Point2D A) {
 }
 
 Rectangle generateStick() {
-    int x, y, r, l, transpose, z = 0;
+    int x, y, r, l, transpose, z;
     float red, green, blue;
     
     x = random(0, MAX_WIDTH/2);
-    y = random(0, MAX_HEIGHT/2);
+    y = random(0, MAX_HEIGHT - MIN_WIDTH);
 
     red = (random(0, 255))/255.0;
     green = (random(0, 255))/255.0;
@@ -208,13 +191,14 @@ Rectangle generateStick() {
 
     transpose = std::rand() % 2;
     // 0 is landscape, 1 is portrait
-    if (transpose == 0) {
+    if ((transpose == 0) || (y > MAX_HEIGHT/2)) {
         l = MIN_WIDTH;
         r = random(MIN_LENGTH, MAX_HEIGHT - x);
     } else {
         r = MIN_WIDTH;
         l = random(MIN_LENGTH, MAX_WIDTH - y);
     }
+    z = random(0, MAX_DEPTH);
     Rectangle rectangle = {{x, y}, r, l, z, {red, green, blue}};
     return rectangle;
 }
