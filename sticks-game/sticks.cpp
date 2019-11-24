@@ -2,11 +2,13 @@
  *  Windows: -lglut32 -lglu32 -lopengl32 -lwinmm -lgdi32
  *  Linux: -lGL -lGLU -lglut
  */
+// #include <windows.h>
 #include <GL/glut.h>
 #include <bits/stdc++.h>
-#include <iostream>
+// #include <iostream>
 #include <vector>
 #include <algorithm>
+
 #define f(i, a, b) for(int i = a;i < b;i++)
 
 struct Point2D {
@@ -72,7 +74,8 @@ void onMouseClick(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         // std::cout<<x<<", "<<y<<std::endl;
         click = true;
-        std::cout<<clickedRectangle({x, MAX_WIDTH - y})<<std::endl;
+        // std::cout<<clickedRectangle({x, MAX_WIDTH - y})<<std::endl;
+        clickedRectangle({x, MAX_WIDTH - y});
         glutPostRedisplay();
     }
     
@@ -81,9 +84,9 @@ void onMouseClick(int button, int state, int x, int y) {
 void timer(int value) {
     if (!listSticks.empty()) {
         // listSticks.push_back(generateStick());
-        glutPostRedisplay();
-        glutTimerFunc(TIME_REFRESH*1000, timer, 0);
     }	
+    glutPostRedisplay();
+        glutTimerFunc(TIME_REFRESH*1000, timer, 0);
 }
 
 void initGl() {
@@ -115,8 +118,10 @@ void paint() {
 		}
     }
     if (listSticks.size() == MAX_STICKS) {
-		std::cout<<"You lose!"<<std::endl;
-		exit(0);
+        system("g++ ./PopupMessage.cpp -o popup && .\\popup lose");
+		listSticks.clear();
+        started = false;
+		// exit(0);
 	}
     // std::cout<<"------------------------------------"<<std::endl;
     f(i, 0, listSticks.size()) {
@@ -131,7 +136,7 @@ void paint() {
 
 bool clickedRectangle(Point2D A) {
     int minX, maxX, minY, maxY;
-    std::cout<<"("<<A.x<<", "<<A.y<<") ";
+    // std::cout<<"("<<A.x<<", "<<A.y<<") ";
     for(int i=listSticks.size()-1;i>=0;i--) {
         minX = listSticks[i].vertex.x;
         minY = listSticks[i].vertex.y;
@@ -158,8 +163,11 @@ bool clickedRectangle(Point2D A) {
             listSticks.erase(listSticks.begin()+i);
             if (listSticks.empty()) {
                 // Game over
-                std::cout<<"You win!"<<std::endl;
-                exit(0);
+                system("g++ ./PopupMessage.cpp -o popup && .\\popup win");
+                // MessageBox(NULL, "You win!", "Congratulation!", MB_OK);
+                // std::cout<<"You win!"<<std::endl;
+                started = false;
+                // exit(0);
             } /*else {
                 f(i, 0, listSticks.size()) {
                     std::cout<<i<<" -> ";
