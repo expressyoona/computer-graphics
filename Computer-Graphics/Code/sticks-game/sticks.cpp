@@ -60,6 +60,7 @@ void timer(int value);
 bool clickedRectangle(Point2D A);
 Rectangle generateStick();
 int random(int a, int b); // Random number x: a <= x <= b
+void drawStick(Rectangle r);
 void printRectangle(Rectangle r) {
     std::cout<<r.vertex.x<<" -> "<<r.vertex.x+r.r<<", "<<r.vertex.y<<" -> "<<r.vertex.y+r.l<<std::endl;
 }
@@ -139,15 +140,6 @@ void paint() {
         glVertex2i(listSticks[i].vertex.x + listSticks[i].r, listSticks[i].vertex.y + listSticks[i].l);
         glVertex2i(listSticks[i].vertex.x + listSticks[i].r, listSticks[i].vertex.y);
         glEnd();
-
-        // Highlight lowest vertex
-        /*
-        glColor3f(1.0, 0.0, 0.0);
-        glPointSize(5.0);
-        glBegin(GL_POINTS);
-            glVertex2i(x, y);
-        glEnd();
-        */
     }   
     glFlush();
 }
@@ -209,4 +201,33 @@ int random(int a, int b) {
     int result = (std::rand() % (b - a)) + a;
     std::cout<<"("<<a<<", "<<b<<") = "<<result<<std::endl;
     return result;
+}
+
+void drawStick(Rectangle r) {
+    glBegin(GL_QUADS);
+    glColor3f(r.color[0], r.color[1], r.color[2]);
+
+    glVertex2i(r.vertex.x, r.vertex.y);
+    glVertex2i(r.vertex.x, r.vertex.y + r.l);
+    glVertex2i(r.vertex.x + r.r, r.vertex.y + r.l);
+    glVertex2i(r.vertex.x + r.r, r.vertex.y);
+    glEnd();
+
+    // Draw border
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    glVertex2i(r.vertex.x, r.vertex.y);
+    glVertex2i(r.vertex.x, r.vertex.y + r.l);
+    glVertex2i(r.vertex.x + r.r, r.vertex.y + r.l);
+    glVertex2i(r.vertex.x + r.r, r.vertex.y);
+    glEnd();
+
+    // Highlight lowest vertex
+    /*
+    glColor3f(1.0, 0.0, 0.0);
+    glPointSize(5.0);
+    glBegin(GL_POINTS);
+        glVertex2i(x, y);
+    glEnd();
+    */
 }
