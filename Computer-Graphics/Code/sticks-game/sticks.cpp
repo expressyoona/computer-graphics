@@ -4,6 +4,9 @@
  */
 #include <GL/glut.h>
 #include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
 #define f(i, a, b) for(int i = a;i < b;i++)
 
 struct Point2D {
@@ -19,20 +22,24 @@ struct Rectangle {
     float color[3];
 };
 
+bool sortDepth (Rectangle i,Rectangle j) {
+	return (i.depth > j.depth);
+}
+
 const int MAX_WIDTH = 1000;
 const int MAX_HEIGHT = 1000;
 
 
 const int N = 10; // Số thanh đầu game
-const int TIME_REFRESH = 5; // Thời gian tối thiểu(s) để thêm thanh mới
+const int TIME_REFRESH = 1; // Thời gian tối thiểu(s) để thêm thanh mới
 const int MAX_STICKS = 20; // Số lượng thanh tối đa
 const int MAX_DEPTH = 10; // Độ sâu tối đa của 1 thanh
 const int MIN_LENGTH = 400; // Chiều dài/rộng tối thiểu của 1 thanh nằm ngang/dọc
 const int MIN_WIDTH = 20; // Chiều rộng/dài tối thiểu của 1 thanh nằm ngang/dọc
 
-// int currentStick = N; // Nếu dùng vector, thì dùng listSticks.size() thay cho currentStick
 Rectangle arr[MAX_STICKS];
 bool started = false;
+bool click = false;
 
 std::vector<Rectangle> listSticks;
 /*
@@ -83,9 +90,10 @@ void onMouseClick(int button, int state, int x, int y) {
     // Gốc tọa độ khi thao tác chuột != gốc tọa độ khi vẽ --> Cần trừ 1 khoảng tương ứng
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         // std::cout<<x<<", "<<y<<std::endl;
+        click = true;
         std::cout<<clickedRectangle({x, MAX_WIDTH - y})<<std::endl;
         // Cần xóa thanh ra khỏi vector trước khi vẽ lại
-        // glutPostRedisplay();
+        glutPostRedisplay();
     }
     
 }
@@ -110,36 +118,34 @@ void initGl() {
 }
 
 void paint() {
-    std::cout<<"Paint method"<<std::endl;
+    // std::cout<<"Paint method"<<std::endl;
     glClear(GL_COLOR_BUFFER_BIT);
     if (!started) {
         f(i, 0, N) {
             listSticks.push_back(generateStick());
         }
+        sort(listSticks.begin(), listSticks.end(), sortDepth);
         started = true;
     } else {
-        listSticks.push_back(generateStick());
+        if(!click) {
+			listSticks.push_back(generateStick());
+        	sort(listSticks.begin(), listSticks.end(), sortDepth);
+		}
+		else {
+			click = false;
+		}
     }
-
+    if (listSticks.size() == MAX_STICKS) {
+		std::cout<<"You lose!"<<std::endl;
+		exit(0);
+	}
+    // std::cout<<"------------------------------------"<<std::endl;
     f(i, 0, listSticks.size()) {
+        /*
         std::cout<<"["<<i<<"/"<<listSticks.size()<<"]: ";
         printRectangle(listSticks[i]);
-        glBegin(GL_QUADS);
-        glColor3f(listSticks[i].color[0], listSticks[i].color[1], listSticks[i].color[2]);
-        glVertex2i(listSticks[i].vertex.x, listSticks[i].vertex.y);
-        glVertex2i(listSticks[i].vertex.x, listSticks[i].vertex.y + listSticks[i].l);
-        glVertex2i(listSticks[i].vertex.x + listSticks[i].r, listSticks[i].vertex.y + listSticks[i].l);
-        glVertex2i(listSticks[i].vertex.x + listSticks[i].r, listSticks[i].vertex.y);
-        glEnd();
-
-        // Draw border
-        glColor3f(0.0, 0.0, 0.0);
-        glBegin(GL_LINE_LOOP);
-        glVertex2i(listSticks[i].vertex.x, listSticks[i].vertex.y);
-        glVertex2i(listSticks[i].vertex.x, listSticks[i].vertex.y + listSticks[i].l);
-        glVertex2i(listSticks[i].vertex.x + listSticks[i].r, listSticks[i].vertex.y + listSticks[i].l);
-        glVertex2i(listSticks[i].vertex.x + listSticks[i].r, listSticks[i].vertex.y);
-        glEnd();
+        */
+        drawStick(listSticks[i]);
     }   
     glFlush();
 }
@@ -147,7 +153,7 @@ void paint() {
 bool clickedRectangle(Point2D A) {
     int minX, maxX, minY, maxY;
     std::cout<<"("<<A.x<<", "<<A.y<<") ";
-    f(i, 0, listSticks.size()) {
+    for(int i=listSticks.size()-1;i>=0;i--) {
         minX = listSticks[i].vertex.x;
         minY = listSticks[i].vertex.y;
         maxX = minX + listSticks[i].r;
@@ -155,17 +161,33 @@ bool clickedRectangle(Point2D A) {
         
         if (minX <= A.x && A.x <= maxX && minY <= A.y && A.y <= maxY) {
             std::cout<<i<<std::endl;
+            Point2D r1, l1, r2, l2;
+            bool check = false;
+            r1 = {listSticks[i].vertex.x + listSticks[i].r, listSticks[i].vertex.y};
+            l1 = {listSticks[i].vertex.x, listSticks[i].vertex.y + listSticks[i].l};
+            for(int j=listSticks.size()-1;j>i;j--) {
+            	r2 = {listSticks[j].vertex.x + listSticks[j].r, listSticks[j].vertex.y};
+            	l2 = {listSticks[j].vertex.x, listSticks[j].vertex.y + listSticks[j].l};
+            	if (l1.x > r2.x || l2.x > r1.x) {
+            		continue;
+            	}
+            	if (l1.y < r2.y || l2.y < r1.y) {
+            		continue;
+            	}
+            	return false;
+        	}
             listSticks.erase(listSticks.begin()+i);
             if (listSticks.empty()) {
                 // Game over
                 std::cout<<"You win!"<<std::endl;
-            } else {
+                exit(0);
+            } /*else {
                 f(i, 0, listSticks.size()) {
                     std::cout<<i<<" -> ";
                     printRectangle(listSticks[i]);
                 }
             }
-            
+            */
             return true;
         }
     }
@@ -177,14 +199,14 @@ Rectangle generateStick() {
     int x, y, r, l, transpose, z = 0;
     float red, green, blue;
     
-    x = std::rand() % MAX_WIDTH/2;
-    y = std::rand() % MAX_HEIGHT/2;
+    x = random(0, MAX_WIDTH/2);
+    y = random(0, MAX_HEIGHT/2);
 
-    red = (std::rand() % 255)/255.0;
-    green = (std::rand() % 255)/255.0;
-    blue = (std::rand() % 255)/255.0;
+    red = (random(0, 255))/255.0;
+    green = (random(0, 255))/255.0;
+    blue = (random(0, 255))/255.0;
 
-    transpose = rand() % 2;
+    transpose = std::rand() % 2;
     // 0 is landscape, 1 is portrait
     if (transpose == 0) {
         l = MIN_WIDTH;
@@ -193,13 +215,13 @@ Rectangle generateStick() {
         r = MIN_WIDTH;
         l = random(MIN_LENGTH, MAX_WIDTH - y);
     }
-    Rectangle rectangle = {{x, y}, r, l, 0, {red, green, blue}};
+    Rectangle rectangle = {{x, y}, r, l, z, {red, green, blue}};
     return rectangle;
 }
 
 int random(int a, int b) {
     int result = (std::rand() % (b - a)) + a;
-    std::cout<<"("<<a<<", "<<b<<") = "<<result<<std::endl;
+    // std::cout<<"("<<a<<", "<<b<<") = "<<result<<std::endl;
     return result;
 }
 
