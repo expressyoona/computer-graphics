@@ -15,6 +15,7 @@
 * Vẽ hình chữ nhật với các đỉnh (x, y), (x, y + l), (x+r, y), (x+r, y+l) và màu như trên.
 
 ## Các hằng số
+* MAX_WIDTH, MAX_HEIGHT: chiều rộng, cao của cửa sổ
 * N: số thanh khởi đầu
 * TIME_REFRESH: thời gian(giây) thêm 1 thanh mới
 * MAX_STICKS: số lượng thanh tối đa
