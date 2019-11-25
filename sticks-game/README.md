@@ -1,5 +1,10 @@
 # STICKS GAME
 
+## Danh sách thành viên
+1. Lường Khắc Tuấn Anh - 17IT1
+1. Lê Quang Duật - 17IT1
+1. Nguyễn Bảo Minh Hoàng - 17IT1
+
 ## Rules - Luật chơi
 * Khởi đầu sẽ có N thanh hình chữ nhật nằm đè lên nhau
 * Mỗi thanh sẽ có độ sâu z, thanh có z nhỏ hơn sẽ nằm đè lên thanh có z lớn hơn
